@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+//use only for small problems
 void imprimeGrafo(int *inicioVertice, int *vizinhosVertice, double *pesosArestas, int quantidadeVertices){
 	
 	int i, j;
@@ -62,7 +63,7 @@ void importaArquivo(int *inicioVertice, int *vizinhosVertice, uint8_t* visitados
 
 }
 
-
+//This function create a simple graph to be used as example
 /*void populaInformacoesGrafo(int *inicioVertice, int *vizinhosVertice, uint8_t* visitados, double *pesosArestas){
 
     inicioVertice[0] = 0;
@@ -127,6 +128,7 @@ void importaArquivo(int *inicioVertice, int *vizinhosVertice, uint8_t* visitados
 
 */
 
+//use only for small problems
 void imprimeResultado(int *rotulo, int quantidadeVertice){
 
 	
@@ -155,6 +157,9 @@ void imprimeResultado(int *rotulo, int quantidadeVertice){
 	free(caminho);
 	
 }
+
+//This report demonstrates the performance of the algorithm
+//Sift is the amount of position exchange between items in the min heap
 
 void imprimeRelatorio(int insert, int update, int Delete, int siftInserte, int siftUpdate, int siftDelete, int quantidadeVertices, int quantidadeArestas){
 	
