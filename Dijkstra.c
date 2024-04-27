@@ -1,179 +1,149 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdint.h>
+#include <math.h>
 
-//use only for small problems
-void imprimeGrafo(int *inicioVertice, int *vizinhosVertice, double *pesosArestas, int quantidadeVertices){
+typedef struct {
+
+	int distancia;
+	int destino;
+
+}Aresta;
+
+typedef struct noAresta {
+
+	Aresta aresta;
+	struct noAresta* proximo;
+
+}NoAresta;
+
+Aresta preencherAresta(int destino, int distancia){
 	
-	int i, j;
+	Aresta aresta;
 	
-	for(i=0; i<quantidadeVertices; i++){
+	aresta.destino = destino;
+	aresta.distancia = distancia;
+	
+	return aresta;
+	
+}
+
+void criaAresta(NoAresta *arestas[], int origem, int destino, int distancia){
+	
+	NoAresta* novo = (NoAresta*) malloc(sizeof(NoAresta));
+	
+	if(novo){
 		
-		printf("\n%d\n\t", i);
+		novo->aresta = preencherAresta(destino, distancia);
+		novo->proximo = arestas[origem];
+		arestas[origem] = novo;
 		
-		for(j=inicioVertice[i]; j < inicioVertice[i+1]; j++){
+		
+	}else{
+		
+		printf("\nNao foi possivel alocar memoria para criar Aresta e Aresta Par\n");
+		system("pause");
+		
+	}
+	
+	
+}
+
+
+void importaArquivo(int **inicioVertice, int **vizinhosVertice, uint8_t **visitados, double **pesosArestas, int *quantidadeVertices, int *quantidadeArestas) {
+
+	int vertice, posicao;
+	NoAresta *arestaAnterior, *arestaAtual;
+	
+	char *valor;
+	
+	char *valor1;
+	
+	char *valor2;	
+	
+	char *espaco = (char*)malloc(100 * sizeof(char));
+
+	fgets(espaco, 100, stdin);
+	
+	while (espaco[0] != 'p') {
+		
+		fgets(espaco, 100, stdin);
+	
+	}
+
+	valor = strtok(espaco, " ");
+	valor = strtok(NULL, " ");
+	valor = strtok(NULL, " ");
+	
+	*quantidadeVertices = atoi(valor);
+	
+	//NoAresta* arestas[(*quantidadeVertices)];
+	
+	NoAresta** arestas = (NoAresta**)malloc((*quantidadeVertices) * sizeof(NoAresta*));;
+	
+	*inicioVertice = malloc(((*quantidadeVertices)+1) * sizeof(int));
+	
+	*visitados = malloc(((*quantidadeVertices)+1) * sizeof(uint8_t));
+	
+	for(vertice=0; vertice<(*quantidadeVertices);  vertice++){
+		
+		arestas[vertice] = NULL;
+		(*visitados)[vertice] = 0;
+	}
+
+	valor = strtok(NULL, " ");
+	
+	*quantidadeArestas = atoi(valor);
+	
+	*vizinhosVertice = malloc(((*quantidadeArestas)+1) * sizeof(int));
+	*pesosArestas = malloc(((*quantidadeArestas)+1) * sizeof(double));
+	
+	while (espaco[0] != 'a') {
+		
+		fgets(espaco, 100, stdin);
+	
+	}
+	
+	while (!feof(stdin) && espaco[0] == 'a') {
+		
+		valor = strtok(espaco, " ");
+		valor = strtok(NULL, " ");
+		valor1 = strtok(NULL, " ");
+		valor2 = strtok(NULL, " ");
 			
-			printf("[%d]%lf ", vizinhosVertice[j], pesosArestas[j]);
+		criaAresta(arestas, atoi(valor)-1, atoi(valor1)-1, atoi(valor2));
+	
+		fgets(espaco, 100, stdin);
+	
+	}
+	
+	posicao = 0;
+	
+	for(vertice=0; vertice<(*quantidadeVertices); vertice++){
+		
+		(*inicioVertice)[vertice] = posicao;
+		
+		arestaAtual = arestas[vertice];
+		
+		while(arestaAtual){
+			
+			(*vizinhosVertice)[posicao] = arestaAtual->aresta.destino;
+			(*pesosArestas)[posicao] = (double)arestaAtual->aresta.distancia;
+			posicao++;
+			
+			arestaAnterior = arestaAtual;
+			arestaAtual = arestaAtual->proximo;
+			free(arestaAnterior);
 			
 		}
 		
 	}
-	
+
+	(*inicioVertice)[vertice] = posicao;
+		
 }
 
-void importaArquivo(int *inicioVertice, int *vizinhosVertice, uint8_t* visitados, double *pesosArestas, int quantidadeArestas) {
-
-	int i;
-	int inicio = 0;
-	int vertice;
-	int vizinho;
-	int verticeAnterior=-1;
-	int valor;
-	
-
-
-	FILE* file;
-	file = fopen("problema.txt", "r");
-
-	for (i = 0; i < quantidadeArestas; i++) {
-		
-		fscanf(file, "%d", &vertice);
-		fscanf(file, "%d", &vizinho);
-		fscanf(file, "%d", &valor);
-		
-		if(verticeAnterior!=vertice){
-		
-			inicioVertice[vertice] = inicio;
-			visitados[vertice] = 0;
-			verticeAnterior = vertice;
-			
-		}
-		
-		vizinhosVertice[inicio] = vizinho;
-       	pesosArestas[inicio] = (double)valor;
-       	
-       	inicio++;
-
-	}
-	
-	inicioVertice[vertice+1] = inicio;
-	visitados[0] = 1;
-
-	fclose(file);
-
-}
-
-//This function create a simple graph to be used as example
-/*void populaInformacoesGrafo(int *inicioVertice, int *vizinhosVertice, uint8_t* visitados, double *pesosArestas){
-
-    inicioVertice[0] = 0;
-    visitados[0] = 1;
-    vizinhosVertice[0] = 1;
-    vizinhosVertice[1] = 2;
-    pesosArestas[0] = 4.0;
-    pesosArestas[1] = 2.0;
-    
-
-    inicioVertice[1] = 2;
-    visitados[1] = 0;
-    vizinhosVertice[2] = 0;
-    vizinhosVertice[3] = 2;
-    vizinhosVertice[4] = 3;
-    pesosArestas[2] = 4.0;
-    pesosArestas[3] = 1.0;
-    pesosArestas[4] = 5.0;
-
-    inicioVertice[2] = 5;
-    visitados[2] = 0;
-    vizinhosVertice[5] = 0;
-    vizinhosVertice[6] = 1;
-    vizinhosVertice[7] = 3;
-    vizinhosVertice[8] = 4;
-    pesosArestas[5] = 2.0;
-    pesosArestas[6] = 1.0;
-    pesosArestas[7] = 8.0;
-    pesosArestas[8] = 10.0;
-
-
-    inicioVertice[3] = 9;
-    visitados[3] = 0;
-    vizinhosVertice[9] = 1;
-    vizinhosVertice[10] = 2;
-    vizinhosVertice[11] = 4;
-    vizinhosVertice[12] = 5;
-    pesosArestas[9] = 5.0;
-    pesosArestas[10] = 8.0;
-    pesosArestas[11] = 2.0;
-    pesosArestas[12] = 6.0;
-
-    inicioVertice[4] = 13;
-    visitados[4] = 0;
-    vizinhosVertice[13] = 2;
-    vizinhosVertice[14] = 3;
-    vizinhosVertice[15] = 5;
-    pesosArestas[13] = 10.0;
-    pesosArestas[14] = 2.0;
-    pesosArestas[15] = 2.0;
-
-    inicioVertice[5] = 16;
-    visitados[5] = 0;
-    vizinhosVertice[16] = 3;
-    vizinhosVertice[17] = 4;
-    pesosArestas[16] = 6.0;
-    pesosArestas[17] = 2.0;
-
-    inicioVertice[6] = 18;
-
-}
-
-*/
-
-//use only for small problems
-void imprimeResultado(int *rotulo, int quantidadeVertice){
-
-	
-	int *caminho = (int*)malloc(quantidadeVertice*sizeof(int));
-	int i, j=quantidadeVertice-2;
-	
-	i = quantidadeVertice-1;
-	
-	caminho[quantidadeVertice-1] = quantidadeVertice-1;
-	
-	while(rotulo[i]> -1){
-		
-		caminho[j] = rotulo[i];
-		i = caminho[j];
-		j--;
-		
-	}
-	
-	
-	for(i=j+1; i<quantidadeVertice; i++){
-		
-		printf("%d ", caminho[i]);
-		
-	}
-	
-	free(caminho);
-	
-}
-
-//This report demonstrates the performance of the algorithm
-//Sift is the amount of position exchange between items in the min heap
-
-void imprimeRelatorio(int insert, int update, int Delete, int siftInserte, int siftUpdate, int siftDelete, int quantidadeVertices, int quantidadeArestas){
-	
-	printf("\n\nQUANTIDADE VERTICES %d", quantidadeVertices);
-	printf("\nQUANTIDADE  ARESTAS %d", quantidadeArestas);
-	
-	printf("\n\n|OPERACAO\t|QTD\t|QTD SIFT\t|");
-	printf("\n_________________________________________");
-	printf("\n|INSERT\t\t|%d\t|%d\t\t|", insert, siftInserte);
-	printf("\n|UPDATE\t\t|%d\t|%d\t\t|", update, siftUpdate);
-	printf("\n|DELETE\t\t|%d\t|%d\t\t|", Delete, siftDelete);
-	printf("\n_________________________________________");
-	printf("\n|TOTAL\t\t|%d\t|%d\t\t|\n", insert+update+Delete, siftInserte+siftUpdate+siftDelete);
-}
 
 void insereItemNumaPosicaoHeap(double *arvoreHeap, int *localizacaoVerticeNaHeap, int *indiceVerticeNaHeap, int indiceDoItem, int posicao, double valor){
 	
@@ -290,34 +260,78 @@ int deletaPrimeiroItemNaHeap(double *arvoreHeap, int *localizacaoVerticeNaHeap, 
 	
 }
 
-int main(){
+void saveFile(int problema, int verticeInicio, int verticeFim, int distanciaPercorrida, int tempo, int insert, int update, int Delete, int siftInserte, int siftUpdate, int siftDelete,  double rSiftInserte, double rSiftUpdate, double rSiftDelete) {
 
-    int i, vertice, distanciaTotal, distanciaFinal, quantidadeVertices = 264346, quantidadeArestas = 733846;
-    int* inicioVertice = (int *)malloc((quantidadeVertices+1)*sizeof(int));
-    uint8_t* visitados = (uint8_t *)calloc(quantidadeVertices, sizeof(uint8_t));
-    int* rotulo = (int*)malloc((quantidadeVertices)*sizeof(int));
-    int* vizinhosVertice = (int *)malloc(quantidadeArestas*2*sizeof(int));
-    double* pesosArestas = (double *)malloc(quantidadeArestas*2*sizeof(double));
-    int quantidadeItensNaHeap = 1;
-    int indiceRotulo = -1;
+	FILE* pont_arqu;
 
-    double * arvoreHeap = (double *)malloc((quantidadeVertices-1)*sizeof(double));
-    int  *localizacaoVerticeNaHeap = (int *)malloc((quantidadeVertices-1)*sizeof(int));
-    int  *indiceVerticeNaHeap = (int *)malloc((quantidadeVertices-1)*sizeof(int));
+	pont_arqu = fopen("resultado.csv", "a");
 
+	fprintf(pont_arqu, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%.2f;%.2f;%.2f;\n", problema, verticeInicio, verticeFim, distanciaPercorrida, tempo, insert, update, Delete, siftInserte, siftUpdate, siftDelete, rSiftInserte, rSiftUpdate, rSiftDelete);
+
+
+	fclose(pont_arqu);
+
+}
+
+void resetaInformacoesProblemaAnterior(uint8_t* visitados, int *rotulo, int quantidadeVertices){
+
+	int i;
+	
+	for(i=0; i<quantidadeVertices; i++){
+		
+		rotulo[i]= -1;
+		visitados[i] = 0;
+		
+	}	
+	
+}
+
+int main(int argc, char** argv){
+
+	char *arquivo = (char*)malloc(100 * sizeof(char));
+
+	int verticeInicio = atoi(argv[1]) - 1;
+
+	int verticeFim = atoi(argv[2]) - 1;	
+
+	int j;
+	
+	int* inicioVertice;
+	uint8_t* visitados;
+    int* rotulo;
+    int* vizinhosVertice;
+    double* pesosArestas;
+
+	double * arvoreHeap;
+    int  *localizacaoVerticeNaHeap;
+    int  *indiceVerticeNaHeap;
+
+    int i, vertice, distanciaFinal, quantidadeVertices, quantidadeArestas, totalTime;
+    double distanciaTotal;
+    
 	int temp, insert=0, update=0, Delete=0;
 	int siftInserte=0, siftUpdate=0, siftDelete=0;
 
-    //populaInformacoesGrafo(inicioVertice, vizinhosVertice, visitados, pesosArestas);
+	double rSiftInserte=0.0, rSiftUpdate=0.0, rSiftDelete=0.0, logN;
+			
+	importaArquivo(&inicioVertice, &vizinhosVertice, &visitados, &pesosArestas, &quantidadeVertices, &quantidadeArestas);
+	
+	arvoreHeap = (double *)malloc((quantidadeVertices-1)*sizeof(double));
+    localizacaoVerticeNaHeap = (int *)malloc((quantidadeVertices-1)*sizeof(int));
+    indiceVerticeNaHeap = (int *)malloc((quantidadeVertices-1)*sizeof(int));
+    rotulo = (int*)malloc((quantidadeVertices)*sizeof(int));
 
-	importaArquivo(inicioVertice, vizinhosVertice, visitados, pesosArestas, quantidadeArestas);
+	int inicio = time(NULL);
 
-	//imprimeGrafo(inicioVertice, vizinhosVertice, pesosArestas, quantidadeVertices);
+	distanciaFinal= -1;
+	
+	int quantidadeItensNaHeap = 1;
+    int indiceRotulo = -1;
 
 	arvoreHeap[0] = 0.0;
-    localizacaoVerticeNaHeap[0] = 0;
-    indiceVerticeNaHeap[0] = 0;
-    rotulo[0] = -1;
+    localizacaoVerticeNaHeap[verticeInicio] = 0;
+    indiceVerticeNaHeap[0] = verticeInicio;
+    rotulo[verticeInicio] = -1;
 	
     while(quantidadeItensNaHeap>0){
     	
@@ -326,25 +340,31 @@ int main(){
 		indiceRotulo = vertice;
 		visitados[vertice] = 2;
 		
-		if(vertice == quantidadeVertices-1) distanciaFinal = distanciaTotal;
+		if(vertice == verticeFim){
+		
+			distanciaFinal = (int) distanciaTotal;
+				
+			goto QUIT;
+			
+		}
 		
 		temp = deletaPrimeiroItemNaHeap(arvoreHeap, localizacaoVerticeNaHeap, indiceVerticeNaHeap, quantidadeItensNaHeap);
     	siftDelete =  siftDelete + temp;
+    	logN = (log(((double)quantidadeItensNaHeap))/log(2.0));
+		if (logN>0) rSiftDelete = rSiftDelete + temp/logN;
+		
 		quantidadeItensNaHeap--;
-    	Delete++;
+	    Delete++;
     	
-    	//printf("\nUsado vertice: %d\n", vertice); system("pause");
-    	
-    	// percorre vizinhos do vertice
     	for(i=inicioVertice[vertice]; i<inicioVertice[vertice+1]; i++){
     		
     		if(visitados[vizinhosVertice[i]]==1){
-    			
-    			//printf("\nvertice %d visitado\n", vizinhosVertice[i]); system("pause");
     		
 				if(arvoreHeap[localizacaoVerticeNaHeap[vizinhosVertice[i]]]> distanciaTotal + pesosArestas[i]){
 					
 					temp = atualizaHeap(arvoreHeap, localizacaoVerticeNaHeap, indiceVerticeNaHeap, vizinhosVertice[i], distanciaTotal + pesosArestas[i]);
+					logN = (log(((double)quantidadeItensNaHeap))/log(2.0));
+					rSiftUpdate = rSiftUpdate + temp/logN;
 					siftUpdate = siftUpdate + temp;
 					rotulo[vizinhosVertice[i]] = vertice;
 					update++;
@@ -352,10 +372,10 @@ int main(){
 				}
 				
 			}else if(visitados[vizinhosVertice[i]]==0){
-				
-				//printf("\nvertice %d NAO visitado\n", vizinhosVertice[i]);system("pause");
-				
+							
 				temp = insereItemNaHeap(arvoreHeap, localizacaoVerticeNaHeap, indiceVerticeNaHeap, vizinhosVertice[i], quantidadeItensNaHeap, distanciaTotal + pesosArestas[i]);
+				logN = (log(((double)quantidadeItensNaHeap))/log(2.0));
+				if (logN>0) rSiftInserte = rSiftInserte + temp/logN;
 				siftInserte = siftInserte + temp;
 				
 				rotulo[vizinhosVertice[i]] = vertice;
@@ -369,11 +389,16 @@ int main(){
     	
 	}
 	
-	printf("\nDistancia Percorrida: %d\n", distanciaFinal);
+	QUIT:
 	
-	//imprimeResultado(rotulo, quantidadeVertices);
+	totalTime = time(NULL) - inicio;
 	
-	imprimeRelatorio(insert, update, Delete, siftInserte, siftUpdate, siftDelete, quantidadeVertices, quantidadeArestas);
+	rSiftInserte = rSiftInserte / ((double)insert);
+	rSiftDelete = rSiftDelete / ((double)Delete);
+	rSiftUpdate = rSiftUpdate / ((double)update);
+
+	//saveFile(opcao, verticeInicio, verticeFim, distanciaFinal, totalTime, insert, update, Delete, siftInserte, siftUpdate, siftDelete,  rSiftInserte, rSiftUpdate, rSiftDelete);
+
 
 	free(inicioVertice);
 	free(visitados);
@@ -383,6 +408,10 @@ int main(){
     free(arvoreHeap);
     free(localizacaoVerticeNaHeap);
     free(indiceVerticeNaHeap);
+
+
+	fprintf(stdout, "%d", distanciaFinal);
     
     return 0;
+
 }
